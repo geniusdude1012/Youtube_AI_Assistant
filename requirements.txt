@@ -29,5 +29,5 @@ youtube-transcript-api
 
 #Vecter Stores and token embedding
 faiss-cpu
-tiktokken
+tiktoken
 
