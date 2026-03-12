@@ -17,7 +17,7 @@ model=ChatOpenAI()
 embeddings=OpenAIEmbeddings()
 
 #Step 1a: Indexing(Data Ingestion)
-video_id="6M5VXKLf4D4"
+video_id="ukzFI9rgwfU"
 
 ytt_api=YouTubeTranscriptApi()
 
@@ -36,7 +36,7 @@ except TranscriptsDisabled:
 #Step 1b: Text Splitting
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000,chunk_overlap=200)
 chunks=splitter.create_documents(transcript)
-print(len(chunks))
+# print(len(chunks))
 
 #Step 1c & 1d : Embedding Generation and store in vector store
 embeddings=OpenAIEmbeddings()
@@ -46,8 +46,8 @@ vector_store=FAISS.from_documents(chunks,embeddings)
 
 #Step 2: Retreival
 retriever=vector_store.as_retriever(search_type="similarity",search_kwargs={"k":4})
-# result=retriever.invoke("why is deep learning important for medical care")
-# print(result)
+result=retriever.invoke("what is machine learning")
+print(result)
 
 
 #Step 3: Augmentation
@@ -67,12 +67,35 @@ prompt=PromptTemplate(
 question="why is deep learning important for medical care"
 retreived_docs=retriever.invoke(question)
 
-context_text="\n\n".join(doc.page_content for doc in retreived_docs)
+# context_text="\n\n".join(doc.page_content for doc in retreived_docs)
 
-#Creat the final prompt from context obtained and question
-final_prompt=prompt.invoke({'context':context_text,'question':question})
+# #Creat the final prompt from context obtained and question
+# final_prompt=prompt.invoke({'context':context_text,'question':question})
 
-#Step 4: Generation
+# #Step 4: Generation
+# response=model.invoke(final_prompt)
+# print(response)
 
+#Building a chain
+from langchain_core.runnables import RunnableParallel,RunnablePassthrough,RunnableLambda
+from langchain_core.output_parsers import StrOutputParser
 
+def format_docs(retreived_docs):
+    context_text="\n\n".join(doc.page_content for doc in retreived_docs)
+    return context_text
+
+#Creating parallel chain for query and context
+parallel_chains=RunnableParallel({
+    'context': retriever| RunnableLambda(format_docs),
+    'question':RunnablePassthrough()
+})
+
+# parallel_chains.invoke("What is the main topic?")
+
+parser=StrOutputParser()
+
+main_chain=parallel_chains | prompt | model | parser
+
+result=main_chain.invoke("what is machine learning?")
+print(result)
 
