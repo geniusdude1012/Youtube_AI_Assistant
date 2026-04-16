@@ -6,7 +6,7 @@
 
 ## 📸 Demo & Screenshots
 
-> _Add your frontend screenshots here once the app is running._
+
 
 | Feature           | Screenshot               |
 | ----------------- | ------------------------ |
