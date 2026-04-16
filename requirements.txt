@@ -31,3 +31,5 @@ youtube-transcript-api
 faiss-cpu
 tiktoken
 
+#Frontend
+streamlit
